@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The installer. .NET Framework 4.8 ships with Windows 10/11, so this exe stays small and needs nothing
+       installed; the app itself (already standalone) rides along as an embedded resource.
+       Build with ..\build.ps1, which publishes the app first. -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <AssemblyName>ShibaPlayer-Setup</AssemblyName>
+    <RootNamespace>ShibaPlayerSetup</RootNamespace>
+    <ApplicationIcon>..\app.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <DebugType>none</DebugType>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\release\ShibaPlayer.exe" LogicalName="payload.exe" />
+    <EmbeddedResource Include="..\app.ico" LogicalName="app.ico" />
+  </ItemGroup>
+
+</Project>

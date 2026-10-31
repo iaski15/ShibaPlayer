@@ -1,0 +1,822 @@
+﻿<Window x:Class="ShibaPlayer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:ShibaPlayer"
+        Title="ShibaPlayer"
+        Width="1180" Height="840"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None" ResizeMode="CanMinimize"
+        Background="Transparent" AllowsTransparency="True"
+        AllowDrop="True" FontFamily="Segoe UI"
+        TextOptions.TextFormattingMode="Display"
+        DragOver="Window_DragOver" Drop="Window_Drop">
+
+    <!-- Shibaberg palette and styles: copied from ShibaTag's MainWindow.xaml, keep in sync -->
+    <Window.Resources>
+        <SolidColorBrush x:Key="Bg" Color="#FFF6EA"/>
+        <SolidColorBrush x:Key="Surface" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="Surface2" Color="#FBEBD8"/>
+        <SolidColorBrush x:Key="Inset" Color="#FFFBF5"/>
+        <SolidColorBrush x:Key="Line" Color="#EFD9BF"/>
+        <SolidColorBrush x:Key="Text" Color="#3A2418"/>
+        <SolidColorBrush x:Key="Muted" Color="#9B7A60"/>
+        <SolidColorBrush x:Key="Fur" Color="#E8924A"/>
+        <SolidColorBrush x:Key="FurDark" Color="#D27A34"/>
+        <SolidColorBrush x:Key="FurDeep" Color="#C4652A"/>
+        <SolidColorBrush x:Key="CreamText" Color="#FFF2DF"/>
+        <SolidColorBrush x:Key="Hover" Color="#FFF6EA"/>
+        <SolidColorBrush x:Key="Pressed" Color="#F5DEC4"/>
+        <SolidColorBrush x:Key="Dash" Color="#E3C3A0"/>
+        <SolidColorBrush x:Key="Hint" Color="#C8B39E"/>
+        <SolidColorBrush x:Key="Bubble" Color="#FFFFFF"/>
+
+        <Style TargetType="ScrollBar">
+            <Setter Property="Width" Value="8"/>
+            <Setter Property="MinWidth" Value="8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Track x:Name="PART_Track" IsDirectionReversed="True">
+                            <Track.Thumb>
+                                <Thumb>
+                                    <Thumb.Template>
+                                        <ControlTemplate TargetType="Thumb">
+                                            <Border CornerRadius="4" Background="{DynamicResource Line}" Margin="1,0"/>
+                                        </ControlTemplate>
+                                    </Thumb.Template>
+                                </Thumb>
+                            </Track.Thumb>
+                        </Track>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ChromeButton" TargetType="Button">
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bg" Background="Transparent" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="{DynamicResource Surface2}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CloseButton" TargetType="Button" BasedOn="{StaticResource ChromeButton}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bg" Background="Transparent" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="#D22837"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="Height" Value="50"/>
+            <Setter Property="Padding" Value="22,0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bg" CornerRadius="12" Background="{DynamicResource Surface2}"
+                                BorderBrush="{DynamicResource Line}" BorderThickness="1" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource Fur}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="{DynamicResource Pressed}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bg" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SmallButton" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="Padding" Value="16,0"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <!-- Library view segment; Tag holds the icon glyph. -->
+        <Style x:Key="Segment" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="bg" CornerRadius="8" Background="Transparent" Height="36">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Text="{TemplateBinding Tag}" FontFamily="Segoe MDL2 Assets" FontSize="13"
+                                           VerticalAlignment="Center" Margin="0,1,8,0"/>
+                                <ContentPresenter VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="{DynamicResource Fur}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource Surface}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Line}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="20,16"/>
+        </Style>
+
+        <!-- Sliders look like ShibaDownloader's FurProgressBar: cream track, fur fill, round thumb. -->
+        <Style x:Key="SliderFill" TargetType="RepeatButton">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Border Height="6" CornerRadius="3" Background="{TemplateBinding Background}"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="Slider">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid Height="18" Background="Transparent">
+                            <Border Height="6" CornerRadius="3" Background="{DynamicResource Surface2}" VerticalAlignment="Center"/>
+                            <Track x:Name="PART_Track">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Style="{StaticResource SliderFill}" Background="{DynamicResource Fur}" Command="Slider.DecreaseLarge"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Style="{StaticResource SliderFill}" Background="Transparent" Command="Slider.IncreaseLarge"/>
+                                </Track.IncreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb>
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Ellipse Width="14" Height="14" Fill="White" Stroke="{DynamicResource FurDark}" StrokeThickness="2"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- the equalizer's upright sliders, same look -->
+        <Style x:Key="VSliderFill" TargetType="RepeatButton">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Border Width="6" CornerRadius="3" Background="{TemplateBinding Background}"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="VSlider" TargetType="Slider">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid Width="18" Background="Transparent">
+                            <Border Width="6" CornerRadius="3" Background="{DynamicResource Surface2}" HorizontalAlignment="Center"/>
+                            <Track x:Name="PART_Track" Orientation="Vertical">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Style="{StaticResource VSliderFill}" Background="{DynamicResource Fur}" Command="Slider.DecreaseLarge"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Style="{StaticResource VSliderFill}" Background="Transparent" Command="Slider.IncreaseLarge"/>
+                                </Track.IncreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb>
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Ellipse Width="14" Height="14" Fill="White" Stroke="{DynamicResource FurDark}" StrokeThickness="2"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- One paw print for the sidebar pattern (same shapes as Autoberg's PaintSidebar). -->
+        <DrawingBrush x:Key="PawBrush" Stretch="None">
+            <DrawingBrush.Drawing>
+                <GeometryDrawing Brush="#5AD27A34">
+                    <GeometryDrawing.Geometry>
+                        <GeometryGroup>
+                            <EllipseGeometry Center="0,1" RadiusX="9" RadiusY="7"/>
+                            <EllipseGeometry Center="-9.5,-11" RadiusX="3.5" RadiusY="4"/>
+                            <EllipseGeometry Center="-0.5,-16" RadiusX="3.5" RadiusY="4"/>
+                            <EllipseGeometry Center="8.5,-11" RadiusX="3.5" RadiusY="4"/>
+                        </GeometryGroup>
+                    </GeometryDrawing.Geometry>
+                </GeometryDrawing>
+            </DrawingBrush.Drawing>
+        </DrawingBrush>
+
+        <Style x:Key="Cell" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="Num" TargetType="TextBlock" BasedOn="{StaticResource Cell}">
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
+        </Style>
+        <Style x:Key="Head" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10.5"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
+        </Style>
+        <!-- the playing song's title turns orange -->
+        <Style x:Key="SongTitle" TargetType="TextBlock" BasedOn="{StaticResource Cell}">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsPlaying}" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource FurDeep}"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- ShibaPlayer's own bits -->
+        <Style x:Key="Row" TargetType="ListBoxItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="row" CornerRadius="8" Background="Transparent" Padding="8,3" Margin="0,0,8,0">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="row" Property="Background" Value="{DynamicResource Hover}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="row" Property="Background" Value="{DynamicResource Surface2}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="Tile" TargetType="ListBoxItem">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="tile" CornerRadius="12" Background="Transparent" BorderBrush="Transparent"
+                                BorderThickness="1" Padding="8" Margin="0,0,10,10">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="tile" Property="Background" Value="{DynamicResource Hover}"/>
+                                <Setter TargetName="tile" Property="BorderBrush" Value="{DynamicResource Line}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- round player buttons; Background is set from code for the shuffle on/off look -->
+        <Style x:Key="RoundButton" TargetType="Button">
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Margin" Value="4,0"/>
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+            <Setter Property="Background" Value="{DynamicResource Surface2}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bg" CornerRadius="99" Background="{TemplateBinding Background}"
+                                BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource FurDeep}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bg" Property="Opacity" Value="0.8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- cover art, or the shiba when there is none -->
+        <DataTemplate x:Key="CoverArt">
+            <Grid>
+                <Border CornerRadius="8" Background="{DynamicResource Surface2}">
+                    <local:Shiba Margin="4"/>
+                </Border>
+                <Border CornerRadius="8">
+                    <Border.Background>
+                        <ImageBrush ImageSource="{Binding Cover}" Stretch="UniformToFill"/>
+                    </Border.Background>
+                </Border>
+            </Grid>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Border Margin="14" CornerRadius="12" Background="{DynamicResource Bg}" ClipToBounds="True">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="20" ShadowDepth="3" Direction="270" Opacity="0.3"/>
+        </Border.Effect>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ================= Sidebar (also the drag handle) ================= -->
+            <Border Background="{DynamicResource Fur}" CornerRadius="12,0,0,12"
+                    MouseLeftButtonDown="Chrome_MouseLeftButtonDown">
+                <Grid>
+                    <Rectangle Width="30" Height="30" Margin="16,12,0,0" Fill="{StaticResource PawBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False"/>
+                    <Rectangle Width="30" Height="30" Margin="202,96,0,0" Fill="{StaticResource PawBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False"/>
+                    <Rectangle Width="30" Height="30" Margin="14,600,0,0" Fill="{StaticResource PawBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False"/>
+                    <Rectangle Width="30" Height="30" Margin="56,562,0,0" Fill="{StaticResource PawBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False"/>
+                    <Rectangle Width="30" Height="30" Margin="188,648,0,0" Fill="{StaticResource PawBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False"/>
+                    <Rectangle Width="30" Height="30" Margin="208,610,0,0" Fill="{StaticResource PawBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False"/>
+
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Bottom" Text="made with paws" FontSize="10.5"
+                                   Foreground="{DynamicResource CreamText}" HorizontalAlignment="Center" Margin="0,0,0,14"/>
+                        <StackPanel>
+                            <Grid Width="168" Height="168" Margin="0,26,0,0">
+                                <Ellipse Fill="{DynamicResource CreamText}"/>
+                                <local:Shiba x:Name="Mascot" Width="140" Height="140" Margin="0,8,0,0" Mood="Sleepy"/>
+                            </Grid>
+
+                            <TextBlock Text="ShibaPlayer" FontSize="24" FontWeight="Bold" Foreground="White"
+                                       HorizontalAlignment="Center" Margin="0,12,0,0"/>
+
+                            <Path Data="M0,9 L9,0 L18,9 Z" Fill="{DynamicResource Bubble}" HorizontalAlignment="Center" Margin="0,10,0,-1"/>
+                            <Border Background="{DynamicResource Bubble}" CornerRadius="14" Margin="22,0" MinHeight="62" Padding="14,8">
+                                <TextBlock x:Name="BubbleText" FontSize="12" FontWeight="Bold"
+                                           Foreground="{DynamicResource Text}" TextAlignment="Center"
+                                           TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="48"
+                                           VerticalAlignment="Center"
+                                           Text="Woof! Show me your music folder and I'll play it."/>
+                            </Border>
+
+                            <!-- visualizer: click to switch, right-click for the list -->
+                            <Border x:Name="VizCard" Background="#3A2418" CornerRadius="14" Margin="22,18,22,0" Padding="10,10,10,6" Cursor="Hand"
+                                    ClipToBounds="True" ToolTip="Click to switch, right-click for the list"
+                                    MouseLeftButtonDown="Viz_MouseLeftButtonDown" MouseRightButtonUp="Viz_MouseRightButtonUp">
+                                <StackPanel>
+                                    <Border Height="130" ClipToBounds="True">
+                                        <local:Visualizer x:Name="Viz"/>
+                                    </Border>
+                                    <TextBlock x:Name="VizCaption" FontSize="10.5" Foreground="{DynamicResource CreamText}"
+                                               HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </DockPanel>
+                </Grid>
+            </Border>
+
+            <!-- ================= Content ================= -->
+            <DockPanel Grid.Column="1">
+
+                <!-- title bar -->
+                <Grid DockPanel.Dock="Top" Height="40" Background="Transparent"
+                      MouseLeftButtonDown="Chrome_MouseLeftButtonDown">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,6,0">
+                        <Button Style="{StaticResource ChromeButton}" FontSize="13" Content="&#xE713;" Click="Settings_Click" ToolTip="Settings"/>
+                        <Button x:Name="ThemeButton" Style="{StaticResource ChromeButton}" FontSize="13" Click="Theme_Click"/>
+                        <Button Style="{StaticResource ChromeButton}" Content="&#xE921;" Click="Minimize_Click" ToolTip="Minimize"/>
+                        <Button Style="{StaticResource CloseButton}" Content="&#xE8BB;" Click="Close_Click" ToolTip="Close"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- status bar -->
+                <Border DockPanel.Dock="Bottom" Height="32" BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0"
+                        Padding="26,0,20,0">
+                    <Grid>
+                    <TextBlock x:Name="SummaryText" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="11.5"
+                               Foreground="{DynamicResource Muted}"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse x:Name="StatusDot" Width="8" Height="8" Fill="{DynamicResource Muted}" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="StatusText" Margin="10,0,0,0" FontSize="12" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource Text}" VerticalAlignment="Center" Text="Ready"/>
+                    </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- now playing -->
+                <Border DockPanel.Dock="Bottom" Style="{StaticResource Card}" Margin="28,0,28,14" Padding="14,10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <ContentPresenter x:Name="NowCover" Width="64" Height="64" ContentTemplate="{StaticResource CoverArt}"/>
+                        <StackPanel Grid.Column="1" Margin="14,0,18,0" VerticalAlignment="Center">
+                            <TextBlock x:Name="NowTitle" Text="Nothing playing" FontSize="14" FontWeight="Bold"
+                                       Foreground="{DynamicResource Text}" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock x:Name="NowArtist" Text="Such quiet. Wow." FontSize="12"
+                                       Foreground="{DynamicResource Muted}" TextTrimming="CharacterEllipsis"/>
+                            <Grid Margin="0,6,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Slider x:Name="PosSlider" IsMoveToPointEnabled="True" VerticalAlignment="Center"
+                                        Foreground="{DynamicResource Fur}"
+                                        PreviewMouseDown="Pos_PreviewMouseDown" PreviewMouseUp="Pos_PreviewMouseUp"/>
+                                <TextBlock x:Name="TimeText" Grid.Column="1" Text="0:00 / 0:00" Style="{StaticResource Num}" Margin="10,0,0,0"/>
+                            </Grid>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button x:Name="ShuffleButton" Style="{StaticResource RoundButton}" Content="&#xE8B1;" Click="Shuffle_Click" ToolTip="Shuffle"/>
+                            <Button Style="{StaticResource RoundButton}" Content="&#xE892;" Click="Prev_Click" ToolTip="Previous"/>
+                            <Button x:Name="PlayButton" Style="{StaticResource RoundButton}" Content="&#xE768;" Click="Play_Click" ToolTip="Play / pause"
+                                    Width="50" Height="50" FontSize="18" Background="{DynamicResource Fur}" Foreground="White"/>
+                            <Button Style="{StaticResource RoundButton}" Content="&#xE893;" Click="Next_Click" ToolTip="Next"/>
+                            <Button x:Name="SpeedButton" Style="{StaticResource RoundButton}" Content="1x" FontFamily="Segoe UI" FontSize="11.5" FontWeight="Bold" Click="Speed_Click" ToolTip="Speed"/>
+                            <Button Style="{StaticResource RoundButton}" Content="&#xE9E9;" Click="Eq_Click" ToolTip="Equalizer and effects"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0">
+                            <TextBlock Text="&#xE767;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource Muted}" VerticalAlignment="Center"/>
+                            <Slider x:Name="VolumeSlider" Width="90" Minimum="0" Maximum="1" Value="0.7" Margin="8,0,0,0"
+                                    IsMoveToPointEnabled="True" VerticalAlignment="Center" ValueChanged="Volume_Changed"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <DockPanel Margin="28,0,28,14">
+                    <StackPanel DockPanel.Dock="Top">
+                        <TextBlock x:Name="HeadTitle" Text="Let's play some music" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource Text}"/>
+                        <TextBlock x:Name="HeadNote" Text="MP3 and M4A. Double-click a song to play it, right-click it for playlists or to delete it."
+                                   FontSize="12" Foreground="{DynamicResource Muted}" Margin="0,4,0,0"/>
+
+                        <!-- folder: ShibaDownloader's dashed drop zone -->
+                        <Grid x:Name="DropZone" Margin="0,16,0,0">
+                        <Rectangle RadiusX="14" RadiusY="14" Fill="{DynamicResource Surface}"
+                                   Stroke="{DynamicResource Dash}" StrokeThickness="1.4" StrokeDashArray="5 4"/>
+                        <StackPanel Margin="20,14,20,16">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <local:Shiba Width="34" Height="34" Mood="Happy"/>
+                            <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="Drop a music folder here" FontSize="14.5" FontWeight="Bold"
+                                           Foreground="{DynamicResource Text}"/>
+                                <TextBlock Text="or choose one below  ·  MP3 and M4A, subfolders included"
+                                           FontSize="11.5" Foreground="{DynamicResource Muted}"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Border Margin="0,12,0,0" Padding="12,0,5,0" CornerRadius="8" Background="{DynamicResource Inset}"
+                                BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                            <Grid Height="42">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                           Foreground="{DynamicResource Muted}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBlock x:Name="FolderText" Grid.Column="1" FontSize="13" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource Hint}" TextTrimming="CharacterEllipsis"
+                                           Text="No folder yet"/>
+                                <Button x:Name="ChooseButton" Grid.Column="3" Style="{StaticResource SmallButton}" Content="Choose folder"
+                                        Click="Choose_Click"/>
+                            </Grid>
+                        </Border>
+                        </StackPanel>
+                        </Grid>
+
+                        <!-- view switch + summary -->
+                        <Grid Margin="0,14,0,0">
+                            <Border CornerRadius="10" Background="{DynamicResource Surface2}" Padding="3">
+                                <UniformGrid Columns="6">
+                                    <RadioButton x:Name="SongsTab" Content="Songs" Tag="&#xE8D6;" GroupName="view" IsChecked="True"
+                                                 Style="{StaticResource Segment}" Checked="View_Changed"/>
+                                    <RadioButton x:Name="AlbumsTab" Content="Albums" Tag="&#xE93C;" GroupName="view"
+                                                 Style="{StaticResource Segment}" Checked="View_Changed"/>
+                                    <RadioButton x:Name="GenresTab" Content="Genres" Tag="&#xE8EC;" GroupName="view"
+                                                 Style="{StaticResource Segment}" Checked="View_Changed"/>
+                                    <RadioButton x:Name="PlaylistsTab" Content="Playlists" Tag="&#xE90B;" GroupName="view"
+                                                 Style="{StaticResource Segment}" Checked="View_Changed"/>
+                                    <RadioButton x:Name="YouTubeTab" Content="YouTube" Tag="&#xE721;" GroupName="view"
+                                                 Style="{StaticResource Segment}" Checked="View_Changed"/>
+                                    <RadioButton x:Name="EffectsTab" Content="Effects" Tag="&#xE9E9;" GroupName="view"
+                                                 Style="{StaticResource Segment}" Checked="View_Changed"/>
+                                </UniformGrid>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- the list -->
+                    <Border Style="{StaticResource Card}" Margin="0,14,0,0" Padding="12,10,4,6">
+                        <DockPanel>
+                            <!-- header: back, name, actions -->
+                            <DockPanel DockPanel.Dock="Top" Margin="8,0,16,8" Height="34">
+                                <Button x:Name="BackButton" Style="{StaticResource SmallButton}" Content="&#x2190; Back"
+                                        Margin="0,0,12,0" Click="Back_Click"/>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                    <TextBox x:Name="NewPlaylistBox" Foreground="{DynamicResource Text}" CaretBrush="{DynamicResource Text}" Width="170" Height="34" VerticalContentAlignment="Center"
+                                             Padding="8,0" BorderBrush="{DynamicResource Line}" Background="{DynamicResource Inset}"
+                                             KeyDown="NewPlaylistBox_KeyDown" ToolTip="Type a name, then press Enter or Create"/>
+                                    <Button x:Name="NewPlaylistButton" Style="{StaticResource SmallButton}" Content="Create playlist"
+                                            Margin="6,0,0,0" Click="NewPlaylist_Click"/>
+                                    <Button x:Name="SaveCoverButton" Style="{StaticResource SmallButton}" Content="Save cover"
+                                            Margin="6,0,0,0" Click="SaveCover_Click" ToolTip="Save this album's cover as an image file"/>
+                                    <Button x:Name="DeletePlaylistButton" Style="{StaticResource SmallButton}" Content="Delete playlist"
+                                            Margin="6,0,0,0" Click="DeletePlaylist_Click"/>
+                                    <Button x:Name="PlayAllButton" Style="{StaticResource SmallButton}" Content="&#x25B6; Play all"
+                                            Margin="6,0,0,0" Click="PlayAll_Click"/>
+                                </StackPanel>
+                                <TextBlock x:Name="HeaderText" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource Text}"
+                                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                            </DockPanel>
+
+                            <Grid>
+                                <TextBlock x:Name="EmptyText" FontSize="13" Foreground="{DynamicResource Muted}"
+                                           HorizontalAlignment="Center" Margin="0,40,0,0" TextAlignment="Center"/>
+
+                                <!-- album / genre / playlist tiles -->
+                                <ListBox x:Name="GroupList" Background="Transparent" BorderThickness="0"
+                                         ItemContainerStyle="{StaticResource Tile}"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                         SelectionChanged="GroupList_SelectionChanged" ContextMenuOpening="GroupList_ContextMenuOpening">
+                                    <ListBox.ContextMenu>
+                                        <ContextMenu/>
+                                    </ListBox.ContextMenu>
+                                    <ListBox.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel/>
+                                        </ItemsPanelTemplate>
+                                    </ListBox.ItemsPanel>
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Width="140">
+                                                <ContentPresenter Width="140" Height="140" Content="{Binding}"
+                                                                  ContentTemplate="{StaticResource CoverArt}"/>
+                                                <TextBlock Text="{Binding Name}" Style="{StaticResource Cell}" FontWeight="Bold" Margin="0,6,0,0"
+                                                           ToolTip="{Binding Name}"/>
+                                                <TextBlock Text="{Binding Sub}" Style="{StaticResource Cell}" FontSize="11"
+                                                           Foreground="{DynamicResource Muted}" ToolTip="{Binding Sub}"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+
+                                <!-- effects: pages are built in MainWindow.Effects.cs -->
+                                <DockPanel x:Name="EffectsView" Visibility="Collapsed" Margin="8,0,16,4">
+                                    <Border DockPanel.Dock="Top" CornerRadius="10" Background="{DynamicResource Surface2}" Padding="3" Margin="0,0,0,10">
+                                        <UniformGrid x:Name="EffectsTabs" Rows="1"/>
+                                    </Border>
+                                    <Grid x:Name="EffectsHost"/>
+                                </DockPanel>
+
+                                <!-- settings: built in MainWindow.Effects.cs -->
+                                <ScrollViewer x:Name="SettingsView" Visibility="Collapsed" Margin="8,0,8,4" VerticalScrollBarVisibility="Auto">
+                                    <StackPanel x:Name="SettingsList"/>
+                                </ScrollViewer>
+
+                                <!-- choosing a song's metadata by hand -->
+                                <DockPanel x:Name="FixView" Visibility="Collapsed">
+                                    <TextBlock x:Name="FixFile" DockPanel.Dock="Top" FontSize="11.5" Foreground="{DynamicResource Muted}" Margin="8,0,16,6" TextTrimming="CharacterEllipsis"/>
+                                    <Border DockPanel.Dock="Top" Margin="8,0,16,8" Padding="12,0,5,0" CornerRadius="8"
+                                            Background="{DynamicResource Inset}" BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                                        <Grid Height="42">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                                       Foreground="{DynamicResource Muted}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                            <TextBox x:Name="FixBox" Grid.Column="1" Background="Transparent" BorderThickness="0"
+                                                     Foreground="{DynamicResource Text}" CaretBrush="{DynamicResource Text}"
+                                                     SelectionBrush="#E8924A" FontSize="13.5" VerticalContentAlignment="Center"
+                                                     Margin="0,0,8,0" KeyDown="FixBox_KeyDown" ToolTip="Artist and song name. Edit it until the right song shows up."/>
+                                            <Button Grid.Column="2" Style="{StaticResource SmallButton}" Content="Search" Click="FixSearch_Click"/>
+                                        </Grid>
+                                    </Border>
+                                    <ListBox x:Name="FixList" Background="Transparent" BorderThickness="0"
+                                             ItemContainerStyle="{StaticResource Row}"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Height="46">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="52"/>
+                                                        <ColumnDefinition Width="3*"/>
+                                                        <ColumnDefinition Width="3*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Border Width="40" Height="40" CornerRadius="6" HorizontalAlignment="Left" Background="{DynamicResource Surface2}">
+                                                        <Border CornerRadius="6">
+                                                            <Border.Background>
+                                                                <ImageBrush ImageSource="{Binding ThumbUrl}" Stretch="UniformToFill"/>
+                                                            </Border.Background>
+                                                        </Border>
+                                                    </Border>
+                                                    <StackPanel Grid.Column="1" Margin="0,0,12,0" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Title}" Style="{StaticResource Cell}" FontWeight="SemiBold" ToolTip="{Binding Title}"/>
+                                                        <TextBlock Text="{Binding Artist}" Style="{StaticResource Cell}" FontSize="11" Foreground="{DynamicResource Muted}"/>
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="2" Margin="0,0,12,0" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Album}" Style="{StaticResource Cell}" ToolTip="{Binding Album}"/>
+                                                        <TextBlock Text="{Binding Details}" Style="{StaticResource Cell}" FontSize="11" Foreground="{DynamicResource Muted}"/>
+                                                    </StackPanel>
+                                                    <Button Grid.Column="3" Style="{StaticResource SmallButton}" Content="Use this" Click="FixUse_Click"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </DockPanel>
+
+                                <!-- YouTube search -->
+                                <DockPanel x:Name="YouTubeView" Visibility="Collapsed">
+                                    <Border DockPanel.Dock="Top" Margin="8,0,16,8" Padding="12,0,5,0" CornerRadius="8"
+                                            Background="{DynamicResource Inset}" BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                                        <Grid Height="42">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                                       Foreground="{DynamicResource Muted}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                            <TextBox x:Name="YtBox" Grid.Column="1" Background="Transparent" BorderThickness="0"
+                                                     Foreground="{DynamicResource Text}" CaretBrush="{DynamicResource Text}"
+                                                     SelectionBrush="#E8924A" FontSize="13.5" VerticalContentAlignment="Center"
+                                                     Margin="0,0,8,0" KeyDown="YtBox_KeyDown"/>
+                                            <TextBlock Grid.Column="1" Text="Search for a song, or paste a YouTube link to a song or playlist." FontSize="13.5"
+                                                       Foreground="{DynamicResource Hint}" IsHitTestVisible="False"
+                                                       VerticalAlignment="Center" Margin="2,0,0,0">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Text, ElementName=YtBox}" Value="">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                                <Button Style="{StaticResource SmallButton}" Content="Search" Click="YtSearch_Click"/>
+                                                <Button x:Name="YtAllButton" Style="{StaticResource SmallButton}" Margin="6,0,0,0" Visibility="Collapsed" Click="YtAll_Click"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                    <ListBox x:Name="YtList" Background="Transparent" BorderThickness="0"
+                                             ItemContainerStyle="{StaticResource Row}"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Height="46">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="84"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="54"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Border Width="72" Height="40" CornerRadius="6" HorizontalAlignment="Left" Background="{DynamicResource Surface2}">
+                                                        <Border CornerRadius="6">
+                                                            <Border.Background>
+                                                                <ImageBrush ImageSource="{Binding Hit.ThumbUrl}" Stretch="UniformToFill"/>
+                                                            </Border.Background>
+                                                        </Border>
+                                                    </Border>
+                                                    <StackPanel Grid.Column="1" Margin="0,0,12,0" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Hit.Title}" Style="{StaticResource Cell}" FontWeight="SemiBold" ToolTip="{Binding Hit.Title}"/>
+                                                        <TextBlock Text="{Binding Hit.Channel}" Style="{StaticResource Cell}" FontSize="11" Foreground="{DynamicResource Muted}"/>
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="2" Text="{Binding Hit.LengthText}" Style="{StaticResource Num}"/>
+                                                    <Button Grid.Column="3" Style="{StaticResource SmallButton}" MinWidth="96"
+                                                            Content="{Binding Action}" IsEnabled="{Binding CanClick}" Click="YtRow_Click"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </DockPanel>
+
+                                <!-- songs -->
+                                <DockPanel x:Name="SongsView">
+                                    <Grid DockPanel.Dock="Top" Margin="8,0,16,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="48"/>
+                                            <ColumnDefinition Width="3*"/>
+                                            <ColumnDefinition Width="2*"/>
+                                            <ColumnDefinition Width="1.2*"/>
+                                            <ColumnDefinition Width="50"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="1" Text="TITLE" Style="{StaticResource Head}"/>
+                                        <TextBlock Grid.Column="2" Text="ALBUM" Style="{StaticResource Head}"/>
+                                        <TextBlock Grid.Column="3" Text="GENRE" Style="{StaticResource Head}"/>
+                                        <TextBlock Grid.Column="4" Text="LENGTH" Style="{StaticResource Head}"/>
+                                    </Grid>
+                                    <ListBox x:Name="SongList" Background="Transparent" BorderThickness="0"
+                                             ItemContainerStyle="{StaticResource Row}" SelectionMode="Extended"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                             VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
+                                             MouseDoubleClick="SongList_MouseDoubleClick" KeyDown="SongList_KeyDown"
+                                             ContextMenuOpening="SongList_ContextMenuOpening">
+                                        <ListBox.ContextMenu>
+                                            <ContextMenu/>
+                                        </ListBox.ContextMenu>
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Height="40">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="48"/>
+                                                        <ColumnDefinition Width="3*"/>
+                                                        <ColumnDefinition Width="2*"/>
+                                                        <ColumnDefinition Width="1.2*"/>
+                                                        <ColumnDefinition Width="50"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <ContentPresenter Width="36" Height="36" HorizontalAlignment="Left" Content="{Binding}"
+                                                                      ContentTemplate="{StaticResource CoverArt}"/>
+                                                    <StackPanel Grid.Column="1" Margin="0,0,12,0" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Title}" Style="{StaticResource SongTitle}"/>
+                                                        <TextBlock Text="{Binding ArtistName}" Style="{StaticResource Cell}" FontSize="11"
+                                                                   Foreground="{DynamicResource Muted}"/>
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="2" Text="{Binding AlbumName}" Style="{StaticResource Cell}" Margin="0,0,12,0"/>
+                                                    <TextBlock Grid.Column="3" Text="{Binding GenreGroup}" Style="{StaticResource Cell}" Margin="0,0,12,0"
+                                                               ToolTip="{Binding Genre}"/>
+                                                    <TextBlock Grid.Column="4" Text="{Binding LengthText}" Style="{StaticResource Num}"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </DockPanel>
+                            </Grid>
+                        </DockPanel>
+                    </Border>
+                </DockPanel>
+            </DockPanel>
+        </Grid>
+    </Border>
+</Window>

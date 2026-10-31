@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>ShibaPlayer</AssemblyName>
+    <RootNamespace>ShibaPlayer</RootNamespace>
+    <!-- `dotnet publish` -> one standalone "ShibaPlayer.exe" in release\ (same settings as ShibaTag/ShibaDownloader). -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <!-- No compression: measured 154 MB of memory vs 254 MB, for a 134 MB exe vs 62 MB. -->
+    <DebugType>none</DebugType>
+    <PublishDir>release\</PublishDir>
+    <PublishReferencesDocumentationFiles>false</PublishReferencesDocumentationFiles>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <!-- Audio.cs calls Media Foundation COM vtables and waveOut buffers through pointers. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Setup\ is its own project (the installer); keep its sources out of the app. -->
+    <Compile Remove="Setup\**" />
+    <None Remove="Setup\**" />
+    <EmbeddedResource Remove="Setup\**" />
+    <Page Remove="Setup\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TagLibSharp" Version="2.3.0" />
+  </ItemGroup>
+
+</Project>

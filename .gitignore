@@ -1,0 +1,14 @@
+# Build output
+bin/
+obj/
+release/
+
+# Visual Studio and Rider
+.vs/
+.idea/
+*.user
+*.suo
+
+# Publishing leftovers
+*.log
+*.zip
